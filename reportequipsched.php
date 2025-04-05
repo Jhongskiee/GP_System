@@ -9,26 +9,6 @@ if (!isset($_SESSION['username'])) {
 $username = $_SESSION['username']; // Get the logged-in username
 
 include 'connection.php'; // Ensure you have a database connection file
-
-$from_month = $_GET['from_month'] ?? '';
-$from_year = $_GET['from_year'] ?? '';
-$to_month = $_GET['to_month'] ?? '';
-$to_year = $_GET['to_year'] ?? '';
-
-$condition = "";
-if (!empty($from_month) && !empty($from_year) && !empty($to_month) && !empty($to_year)) {
-    $from_date = "$from_year-$from_month-01";
-    $to_date = "$to_year-$to_month-31"; // Covers entire month
-    $condition = "WHERE equipdate BETWEEN '$from_date' AND '$to_date'";
-}
-
-// Fetch distinct dates from the database
-$query = "SELECT equipdate, MAX(print_status) AS print_status 
-          FROM equipsched 
-          GROUP BY equipdate 
-          ORDER BY equipdate DESC";
-
-$result = $conn->query($query);
 ?>
 
 <!DOCTYPE html>
@@ -221,48 +201,84 @@ if (isset($_SESSION['message'])) {
                                 <i class="fas fa-table mr-1"></i>
                                 List of Vehicle Schedule
                             </div>
+                            <?php
+$count = 1;
+$result = null; // Initialize $result
+
+// Default query: Fetch all records if no filter is applied
+$query = "SELECT equipdate, MAX(print_status) AS print_status FROM equipsched GROUP BY equipdate ORDER BY equipdate DESC";
+
+
+// If filtering is applied
+if (isset($_GET['daterange']) && $_GET['daterange'] != '') {  // Fix GET parameter
+    $daterange = $_GET['daterange'];  // Store the value from GET
+
+    if (strpos($daterange, " - ") !== false) {  // Ensure correct format
+        list($startDate, $endDate) = explode(" - ", $daterange);
+
+        $query = "SELECT equipdate, MAX(print_status) AS print_status 
+                  FROM equipsched
+                  WHERE equipdate BETWEEN '$startDate' AND '$endDate' 
+                  GROUP BY equipdate 
+                  ORDER BY equipdate DESC";
+    }
+}
+
+$result = $conn->query($query);
+
+// Debugging: Check if the query is failing
+if (!$result) {
+    die("Query failed: " . $conn->error); 
+}
+?>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <!-- Filter Form -->
-                                    <div>
-                                        <form action="" method="GET">
-                                            <!-- Hidden input field to store the date range value -->
-    <input type="hidden" id="daterange-input" name="equipdate" value="<?= isset($_GET['equipdate']) ? $_GET['equipdate'] : '' ?>">
+        <div>
+            <form action="" method="GET">
+                <input type="text" name="daterange" id="daterange" value="<?= isset($_GET['daterange']) ? $_GET['daterange'] : '' ?>" />
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <button type="button" id="reset-filter" class="btn btn-secondary">Unfilter</button> <!-- Reset Button -->
 
-    <div id="reportrange" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
-        <i class="fa fa-calendar"></i>&nbsp;
-        <span></span> <i class="fa fa-caret-down"></i>
-    </div>
-                                            <button type="submit" class="btn btn-primary">Filter</button>
-                                        </form>    
-                                    </div>
-                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Date</th>
-                                                <th>Status</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                            $count = 1;
-                                            while ($row = $result->fetch_assoc()) {
-                                            ?>
-                                                <tr>
-                                                    <td><?= $count++; ?></td>
-                                                    <td><?= date("F d, Y", strtotime($row['equipdate'])); ?></td>
-                                                    <td><?= isset($row['print_status']) ? $row['print_status'] : 'Not Printed'; ?></td>
-                                                    <td>
-                                                        <button class="btn btn-primary btn-sm view-details" data-date="<?= $row['equipdate']; ?>">
-                                                            View
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            <?php } ?>
-                                        </tbody>
-                                    </table>
+                <!-- Hidden fields to store start & end dates -->
+    <input type="hidden" id="from_startDate" name="from_startDate" value="">
+    <input type="hidden" id="from_endDate" name="from_endDate" value="">
+            </form>
+            
+            <button type="button" id="motrprintBtn" class="btn btn-outline-success">Print MOTR</button>
+            <button type="button" id="compreprintBtn" class="btn btn-outline-success">Print Comprehensive - All Vehicle</button>     
+        </div>
+
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($result && $result->num_rows > 0): ?>
+                    <?php while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><?= $count++; ?></td>
+                            <td><?= date("F d, Y", strtotime($row['equipdate'])); ?></td>  <!-- Fixed Format -->
+                            <td><?= isset($row['print_status']) ? $row['print_status'] : 'Not Printed'; ?></td>
+                            <td>
+                                <button class="btn btn-primary btn-sm view-details" data-date="<?= $row['equipdate']; ?>">
+                                    View
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="4" class="text-center">No records found.</td> <!-- Show message when no data -->
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
                                 </div>
                             </div>
                         </div>
@@ -284,13 +300,13 @@ if (isset($_SESSION['message'])) {
         </div>
 
         <!-- Modal -->
-<div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
+<div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="detailsModalLabel">Equipment Schedule Details</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                    <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body">
@@ -323,13 +339,13 @@ if (isset($_SESSION['message'])) {
 </div>
 
 <!-- Second Modal (Update Entry) -->
-<div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+<div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="updateModalLabel">Update Equipment Details</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                    <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body">
@@ -423,65 +439,8 @@ if (isset($_SESSION['message'])) {
         });
     });
 
-    // 🟢 Independent Filter Button Click Handler
-    $("#filterBtn").click(function () {
-        var fromMonth = $("#from_month").val();
-        var fromYear = $("#from_year").val();
-        var toMonth = $("#to_month").val();
-        var toYear = $("#to_year").val();
-
-        if (!fromMonth || !fromYear || !toMonth || !toYear) {
-            Swal.fire({
-                icon: "warning",
-                title: "Invalid Filter",
-                text: "Please select both From and To dates."
-            });
-            return;
-        }
-
-        $.ajax({
-            url: "reportequipsched.php",
-            method: "GET",
-            data: { from_month: fromMonth, from_year: fromYear, to_month: toMonth, to_year: toYear },
-            success: function (response) {
-                $("#dataTable").html($(response).find("#dataTable").html()); // Reload table only
-            }
-        });
-    });
-
-    // 🟢 Unfilter (Reload Table Only)
-    $("#unfilterBtn").click(function () {
-        $.ajax({
-            url: "reportequipsched.php",
-            method: "GET",
-            success: function (response) {
-                $("#dataTableContainer").html($(response).find("#dataTableContainer").html()); // Reload table only
-            }
-        });
-    });
-
-    // 🟢 Print MOTR (Filtered Data)
-    $("#printBtn").click(function () {
-        var fromMonth = $("#from_month").val();
-        var fromYear = $("#from_year").val();
-        var toMonth = $("#to_month").val();
-        var toYear = $("#to_year").val();
-
-        if (!fromMonth || !fromYear || !toMonth || !toYear) {
-            Swal.fire({
-                icon: "warning",
-                title: "Invalid Print",
-                text: "Please select both From and To dates."
-            });
-            return;
-        }
-
-        window.open("mortPrint.php?from_month=" + fromMonth + "&from_year=" + fromYear + 
-                    "&to_month=" + toMonth + "&to_year=" + toYear, "_blank");
-    });
-
     // 🟢 Print Equipment Schedule
-    $("#printBtnEquip").click(function () {
+    $("#printBtn").click(function () {
         var schedDate = $("#selectedDateText").text().replace("Date: ", "").trim();
 
         if (!schedDate) {
@@ -592,32 +551,73 @@ if (isset($_SESSION['message'])) {
 
         </script>
 
-<script type="text/javascript">
+<script>
 $(function() {
+    var selectedDateRange = $('input[name="daterange"]').val(); // Get existing value if set
 
-    var start = moment().subtract(29, 'days');
-    var end = moment();
+    $('input[name="daterange"]').daterangepicker({
+        opens: 'left',
+        autoUpdateInput: false,  // Prevents automatic update until a selection is made
+        locale: {
+            format: 'YYYY-MM-DD'
+        }
+    }, function(start, end) {
+        // Update input field when a new date is selected
+        $('input[name="daterange"]').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+    });
 
-    function cb(start, end) {
-        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+    // If a date range was previously selected (from GET request), display it
+    if (selectedDateRange !== '') {
+        var dates = selectedDateRange.split(' - ');
+        $('input[name="daterange"]').data('daterangepicker').setStartDate(dates[0]);
+        $('input[name="daterange"]').data('daterangepicker').setEndDate(dates[1]);
+        $('input[name="daterange"]').val(selectedDateRange); // Ensure input reflects the saved value
     }
 
-    $('#reportrange').daterangepicker({
-        startDate: start,
-        endDate: end,
-        ranges: {
-           'Today': [moment(), moment()],
-           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-           'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-           'This Month': [moment().startOf('month'), moment().endOf('month')],
-           'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+    // Reset Filter (Unfilter) Button Click Event
+    $('#reset-filter').click(function() {
+        $('input[name="daterange"]').val(''); // Clear input field
+        window.location.href = window.location.pathname; // Reload page without query parameters
+    });
+
+    // 🟢 Print MORT (Filtered or Unfiltered)
+    $("#motrprintBtn").click(function() { 
+        var dateRange = $('input[name="daterange"]').val();
+        
+        if (dateRange) {
+            var dates = dateRange.split(" - ");
+            var startDate = dates[0];
+            var endDate = dates[1];
+
+            console.log("Filtered Print MORT:", startDate, endDate); // Debugging
+
+            window.open("printMROT.php?from_startDate=" + startDate + "&from_endDate=" + endDate , "_blank");
+        } else {
+            console.log("Printing all data in MORT (No Filter).");
+            window.open("printMROT.php", "_blank"); // Opens without filters (prints all data)
         }
-    }, cb);
+    });
 
-    cb(start, end);
+    // 🟢 Print Comprehensize (Filtered or Unfiltered)
+    $("#compreprintBtn").click(function() { 
+        var dateRange = $('input[name="daterange"]').val();
+        
+        if (dateRange) {
+            var dates = dateRange.split(" - ");
+            var startDate = dates[0];
+            var endDate = dates[1];
 
+            console.log("Filtered Print MORT:", startDate, endDate); // Debugging
+
+            window.open("printCompre.php?from_startDate=" + startDate + "&from_endDate=" + endDate , "_blank");
+        } else {
+            console.log("Printing all data in MORT (No Filter).");
+            window.open("printCompre.php", "_blank"); // Opens without filters (prints all data)
+        }
+    });
 });
+
 </script>
+
     </body>
 </html>

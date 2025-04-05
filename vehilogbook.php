@@ -169,6 +169,51 @@ if (isset($_SESSION['message'])) {
                             <li class="breadcrumb-item active">Equiment Schedule</li>
                         </ol>
                         <div class="row">
+                            <div class="col-xl-12">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <i class="fas fa-table mr-1"></i>
+                                        Recent Added
+                                    </div>
+                                    <div class="card-body">
+                                        <table id="recentTable" class="table table-bordered" style="width: 100%;">
+                                            <thead style="text-align: center; vertical-align: top;">
+                                                <tr>
+                                                    <th rowspan="2">Date</th>
+                                                    <th rowspan="2">Drive/Operator</th>
+                                                    <th colspan="3">Vehicle</th>
+                                                    <th rowspan="2">Nature of Work</th>
+                                                    <th rowspan="2">Location</th>
+                                                    <th colspan="2">Odometer</th>
+                                                    <th colspan="2">SMR</th>
+                                                    <th colspan="2">Measure</th>
+                                                    <th colspan="2">Fuel</th>
+                                                    <th rowspan="2">Meter Type</th>
+                                                    <th rowspan="2">Status</th>
+                                                </tr>
+                                                <tr>
+                                                    <th>Plate #</th>
+                                                    <th>Type</th>
+                                                    <th>Brand</th>
+                                                    <th>Beginning</th>
+                                                    <th>Ending</th>
+                                                    <th>Beginning</th>
+                                                    <th>Ending</th>
+                                                    <th>Distance Travel</th>
+                                                    <th># of hours Travel</th>
+                                                    <th>Ltrs</th>
+                                                    <th>Cost</th>
+                                                </tr>    
+                                            </thead>
+                                            <tbody style="text-align: center; vertical-align: top;">
+                                            <tr><td colspan='20'>Please select a driver .</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>    
+                        <div class="row">
                             <div class="col-xl-6">
                                 <div class="card mb-4">
                                     <div class="card-header">
@@ -181,7 +226,15 @@ if (isset($_SESSION['message'])) {
                                             <label class="form-label">Date</label>
                                             <input type="date" class="form-control mb-3" name="scheddate" id="scheddate">
                                             <label class="form-label">Name of Driver/Operator</label>
-                                            <input type="text" class="form-control mb-3" name="schedoperator" id="schedoperator" style="text-transform: uppercase;">
+                                            <select class="form-control mb-3" id="schedoperator">
+                                                <option value="">Select Driver</option>
+                                                <?php
+                                                $result = $conn->query("SELECT id, fullname FROM driver ORDER BY fullname ASC");
+                                                while ($row = $result->fetch_assoc()) {
+                                                    echo "<option value='" . $row['id'] . "'>" . $row['fullname'] . "</option>";
+                                                }
+                                                ?>
+                                            </select>
                                             <label class="form-label">Plate No.</label>
                                             <select class="form-control mb-3" id="schedplate">
                                                 <option value="">Select Plate Number</option>
@@ -203,20 +256,44 @@ if (isset($_SESSION['message'])) {
                                             <input type="text" class="form-control mb-4" name="schednature" id="schednature" style="text-transform: uppercase;">
                                             <label class="form-label">Type of Meter</label>
     <div class="mb-4">
-    <input type="radio" name="meterType" value="odometer" id="odometer"> <label for="odometer">Odometer</label>
-    <input type="radio" name="meterType" value="smr" id="smr"> <label for="smr">SMR</label>
+    <input type="radio" name="meterType" value="Odometer" id="Odometer"> <label for="Odometer">Odometer</label>
+    <input type="radio" name="meterType" value="SMR" id="SMR"> <label for="SMR">SMR</label>
                                             </div>
 
     <div id="odometerFields" style="display: none;">
-        <label class="form-label">Odometer Measurement (Last reading)</label>
-        <input type="text" class="form-control mb-3" name="odoMeasure" id="odoMeasure">
+            <div class="mb-4">
+                Does the meter working?
+            <input type="radio" name="meterFunction" value="odoYes" id="odoYes"> <label for="odoYes">Yes</label>
+            <input type="radio" name="meterFunction" value="odoNo" id="odoNo"> <label for="odoNo">No</label>
+            </div>
+            <div id="odoWorking" style="display: none;">
+                <div>
+                <label class="form-label">Last Reading as of: </label><br><span id="odolastEnding"></span>
+                                            </div>
+                <label class="form-label">Current Reading: </label>
+                <input type="text" class="form-control mb-3" name="odoCurrent" id="odoCurrent">
+                <label class="form-label">New Reading: </label>
+                <input type="text" class="form-control mb-3" name="odoNew" id="odoNew">
+            </div>    
         <label class="form-label">Distance Travel</label>
         <input type="text" class="form-control mb-3" name="distanceTravel" id="distanceTravel">
     </div>
     
     <div id="smrFields" style="display: none;">
-        <label class="form-label">SMR Measurement (Last reading)</label>
-        <input type="text" class="form-control mb-3" name="smrMeasure" id="smrMeasure">
+            <div class="mb-4">
+                    Does the meter working?
+                <input type="radio" name="meterFunction" value="smrYes" id="smrYes"> <label for="smrYes">Yes</label>
+                <input type="radio" name="meterFunction" value="smrNo" id="smrNo"> <label for="smrNo">No</label>
+            </div>
+            <div id="smrWorking" style="display: none;">
+                <div>
+                <label class="form-label">Last Reading as of: </label><br><span id="smrlastEnding"></span>
+                                            </div>
+                <label class="form-label">Current Reading: </label>
+                <input type="text" class="form-control mb-3" name="smrCurrent" id="smrCurrent">
+                <label class="form-label">New Reading: </label>
+                <input type="text" class="form-control mb-3" name="smrNew" id="smrNew">
+            </div>
         <label class="form-label">Number of Hours Operate</label>
         <input type="text" class="form-control mb-3" name="hoursOperate" id="hoursOperate">
     </div>
@@ -242,27 +319,32 @@ if (isset($_SESSION['message'])) {
                                     <div class="itemtable mb-4" style="height: 638px; border: 1px solid; overflow-x:auto; overflow-y:auto;">    
                                     <table class="table table-bordered " id="previewTable">
                                         <thead style="text-align: center; vertical-align: top;">
-                                            <tr>
-                                                <th rowspan="2">Date</th>
-                                                <th rowspan="2">Operator</th>
-                                                <th rowspan="2">Plate No.</th>
-                                                <th rowspan="2">Type</th>
-                                                <th rowspan="2">Brand</th>
-                                                <th rowspan="2">Area</th>
-                                                <th rowspan="2">Nature</th>
-                                                <th colspan="2">Reading</th>
-                                                <th colspan="2">Meter</th>
-                                                <th colspan="2">Fuel Diesel</th>
-                                                <th rowspan="2">Action</th>
-                                            </tr>
-                                            <tr>
-                                                <th>Distance Travel</th>
-                                                <th># of hours Travel</th>
-                                                <th>Distance Travel</th>
-                                                <th># of hours Travel</th>
-                                                <th>Ltrs</th>
-                                                <th>Cost</th>
-                                            </tr>    
+                                        <tr>
+                                                    <th rowspan="2">Date</th>
+                                                    <th rowspan="2">Drive/Operator</th>
+                                                    <th colspan="3">Vehicle</th>
+                                                    <th rowspan="2">Nature of Work</th>
+                                                    <th rowspan="2">Location</th>
+                                                    <th colspan="2">Odometer</th>
+                                                    <th colspan="2">SMR</th>
+                                                    <th colspan="2">Measure</th>
+                                                    <th colspan="2">Fuel</th>
+                                                    <th rowspan="2">Status</th>
+                                                    <th rowspan="2">Action</th>
+                                                </tr>
+                                                <tr>
+                                                    <th>Plate #</th>
+                                                    <th>Type</th>
+                                                    <th>Brand</th>
+                                                    <th>Beginning</th>
+                                                    <th>Ending</th>
+                                                    <th>Beginning</th>
+                                                    <th>Ending</th>
+                                                    <th>Distance Travel</th>
+                                                    <th># of hours Travel</th>
+                                                    <th>Ltrs</th>
+                                                    <th>Cost</th>
+                                                </tr>    
                                         </thead>
                                         <tbody style="">
                                         </tbody>
@@ -302,12 +384,18 @@ if (isset($_SESSION['message'])) {
 
         <script>
             document.querySelectorAll('input[name="meterType"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            document.getElementById('odometerFields').style.display = this.value === 'odometer' ? 'block' : 'none';
-            document.getElementById('smrFields').style.display = this.value === 'smr' ? 'block' : 'none';
-            document.getElementById('fuelFields').style.display = 'block';
-        });
-    });
+                radio.addEventListener('change', function() {
+                    document.getElementById('odometerFields').style.display = this.value === 'Odometer' ? 'block' : 'none';
+                    document.getElementById('smrFields').style.display = this.value === 'SMR' ? 'block' : 'none';
+                    document.getElementById('fuelFields').style.display = 'block';
+                });
+            });
+            document.querySelectorAll('input[name="meterFunction"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    document.getElementById('odoWorking').style.display = this.value === 'odoYes' ? 'block' : 'none';
+                    document.getElementById('smrWorking').style.display = this.value === 'smrYes' ? 'block' : 'none';
+                });
+            });
             $(document).ready(function () {
             // Fetch Type & Brand based on Plate No.
                 $("#schedplate").change(function () {
@@ -337,7 +425,7 @@ if (isset($_SESSION['message'])) {
                 // Add to Preview Table
                 $("#addToPreview").click(function () {
                     var date = $("#scheddate").val();
-                    var operator = $("#schedoperator").val();
+                    var operator = $("#schedoperator option:selected").text();
                     var plate = $("#schedplate option:selected").text();
                     var type = $("#schedtype").val();
                     var brand = $("#schedbrand").val();
@@ -502,6 +590,119 @@ if (isset($_SESSION['message'])) {
 });
 
             });
+
+            document.getElementById("schedoperator").addEventListener("change", function() {
+    const operatorId = this.value;
+
+    if (operatorId !== "") {
+        fetch("fetch_recent_driver.php?driver_id=" + operatorId)
+            .then(response => response.text())
+            .then(data => {
+                document.querySelector("#recentTable tbody").innerHTML = data;
+            });
+    } else {
+        document.querySelector("#recentTable tbody").innerHTML = "<tr><td colspan='20'>Select a driver to view recent data.</td></tr>";
+    }
+});
+
+function fetchLastReading() {
+    
+    const operator = document.getElementById("schedoperator").value;
+    const plate = document.getElementById("schedplate").options[document.getElementById("schedplate").selectedIndex].text;
+    const date = document.getElementById("scheddate").value;
+    const meterType = document.querySelector('input[name="meterType"]:checked')?.value; // Get selected meter type
+
+    console.log("Sending:", { operator, plate, date, meterType });
+
+    if (operator && plate && date) {
+        fetch('get_last_reading.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({
+                operator_id: operator,
+                plate_id: plate,
+                date: date,
+                meter_type: meterType // Include the selected meter type
+            })
+        })
+        .then(res => res.json().catch(() => { throw new Error("Invalid JSON received"); }))
+        .then(data => {
+            console.log("Response Data:", data); // Debugging output
+
+            if (data.error) {
+                // If no previous record, set odoCurrent to the value of odoNew
+                document.getElementById("odolastEnding").innerText = "No previous data found.";
+                const odoNewValue = document.getElementById("odoNew").value;
+                document.getElementById("odoCurrent").value = odoNewValue;
+                // If no previous record, set smrCurrent to the value of smrNew
+                document.getElementById("smrlastEnding").innerText = "No previous data found.";
+                const smrNewValue = document.getElementById("smRNew").value;
+                document.getElementById("smrCurrent").value = smrNewValue;
+            } else {
+                document.getElementById("odolastEnding").innerText =
+                    `${data.fullname} - ${data.equipplate} - ${data.equipdate} - ${data.odoMeasureEnd}`;
+                //assigned the odoMeasureEnd in odoCurrent textfield
+                document.getElementById("odoCurrent").value = data.odoMeasureEnd;
+                // Calculate the distanceTravel when odoNew is updated
+                document.getElementById("odoNew").addEventListener("input", function () {
+                    const odoCurrentValue = parseFloat(document.getElementById("odoCurrent").value);
+                    const odoNewValue = parseFloat(this.value);
+
+                    if (!isNaN(odoCurrentValue) && !isNaN(odoNewValue) && odoNewValue >= odoCurrentValue) {
+                        document.getElementById("distanceTravel").value = (odoNewValue - odoCurrentValue).toFixed(2);
+                    } else {
+                        document.getElementById("distanceTravel").value = ""; // Clear if invalid
+                    }
+                });
+
+                // If SMR is selected, fetch the last reading for SMR
+                document.getElementById("smrlastEnding").innerText =
+                    `${data.fullname} - ${data.equipplate} - ${data.equipdate} - ${data.smrMeasureEnd}`;
+                //assigned the odoMeasureEnd in odoCurrent textfield
+                document.getElementById("smrCurrent").value = data.smrMeasureEnd;
+                // Calculate the hoursOperate when smrNew is updated
+                document.getElementById("smrNew").addEventListener("input", function () {
+                    const smrCurrentValue = parseFloat(document.getElementById("smrCurrent").value);
+                    const smrNewValue = parseFloat(this.value);
+
+                    if (!isNaN(smrCurrentValue) && !isNaN(smrNewValue) && smrNewValue >= smrCurrentValue) {
+                        document.getElementById("hoursOperate").value = (smrNewValue - smrCurrentValue).toFixed(2);
+                    } else {
+                        document.getElementById("hoursOperate").value = ""; // Clear if invalid
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Fetch error:", error);
+            document.getElementById("odolastEnding").innerText = "Error fetching data.";
+        });
+    }
+}
+
+// Trigger on change
+document.getElementById("schedoperator").addEventListener("change", fetchLastReading);
+document.getElementById("schedplate").addEventListener("change", fetchLastReading);
+document.getElementById("scheddate").addEventListener("change", fetchLastReading);
+document.querySelectorAll('input[name="meterType"]').forEach(radio => {
+    radio.addEventListener("change", fetchLastReading);
+});
+
+// Update odoCurrent when odoNew changes (if no previous data exists)
+document.getElementById("odoNew").addEventListener("input", function () {
+    const odoLastEndingText = document.getElementById("odolastEnding").innerText;
+    if (odoLastEndingText.includes("No previous data found.")) {
+        document.getElementById("odoCurrent").value = this.value;
+    }
+});
+
+// Update smrCurrent when odoNew changes (if no previous data exists)
+document.getElementById("smrNew").addEventListener("input", function () {
+    const odoLastEndingText = document.getElementById("smrlastEnding").innerText;
+    if (odoLastEndingText.includes("No previous data found.")) {
+        document.getElementById("smrCurrent").value = this.value;
+    }
+});
         </script>
     </body>
 </html>

@@ -1,0 +1,7 @@
+Array
+(
+    [operator_id] => 1
+    [plate_id] => SGL 988
+    [date] => 2025-04-05
+    [meter_type] => SMR
+)

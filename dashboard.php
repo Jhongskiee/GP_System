@@ -10,10 +10,15 @@ $username = $_SESSION['username']; // Get the logged-in username
 
 include 'connection.php'; // Ensure you have a database connection file
 
-// Fetch the count of destination offices
+// Fetch the count of vehicle
 $vehicle_count_query = "SELECT COUNT(*) as count FROM vehicle";
 $vehicle_count_result = mysqli_query($conn, $vehicle_count_query);
 $vehicle_count = mysqli_fetch_assoc($vehicle_count_result)['count'];
+
+// Fetch the count of driver
+$driver_count_query = "SELECT COUNT(*) as count FROM driver";
+$driver_count_result = mysqli_query($conn, $driver_count_query);
+$driver_count = mysqli_fetch_assoc($driver_count_result)['count'];
 ?>
 
 <!DOCTYPE html>
@@ -211,8 +216,12 @@ if (isset($_SESSION['message'])) {
                                 </div>
                             </div>
                             <div class="col-xl-4 col-md-6">
-                                <div class="card bg-warning text-white mb-4 cardheader">
-                                    <div class="card-body">Warning Card</div>
+                                <div class="card bg-warning text-white mb-4 cardheader" data-toggle="modal" data-target="#driverModal" style="cursor: pointer;">
+                                    <div class="card-body d-flex justify-content-between">
+                                        <i class="far fa-id-card" style="font-size: 28px; margin-right: 5px;"></i>
+                                        <p style="font-size:18px;">Registered Driver</p>
+                                        <p style="font-size:18px;"><?php echo $driver_count; ?></p>
+                                    </div>
                                     <div class="card-footer d-flex align-items-center justify-content-between">
                                         <a class="small text-white stretched-link" href="#">View Details</a>
                                         <div class="small text-white"><i class="fas fa-angle-right"></i></div>
@@ -921,6 +930,110 @@ if (isset($_SESSION['message'])) {
     </div>
 </div>
 
+        <!-- Driver Modal -->
+ <div class="modal fade" id="driverModal" tabindex="-1" aria-labelledby="driverModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="driverModalLabel">Driver List</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+            <?php
+                            $head_list_query = "SELECT * FROM driver";
+                            $head_list_result = mysqli_query($conn, $head_list_query);
+                            $loop_index = 1; // Initialize loop index
+                            ?>
+                    <button class="btn btn-outline-success mb-3 add-office-btn" data-toggle="modal" data-target="#addDriverModal"><i class="far fa-id-card" style="font-size: 18px;"></i> + Add New Driver
+                    </button>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Full Name</th>
+                                </tr>
+                            </thead>
+                        <tbody>
+                        <?php while ($row = mysqli_fetch_assoc($head_list_result)) { ?>
+                            <tr>
+                                <td><?php echo $loop_index++; ?></td>
+                                <td><?php echo $row['fullname']; ?></td>
+                                <td>
+    <button class="btn btn-outline-primary btn-sm edit-driver-btn"
+        data-id="<?php echo $row['id']; ?>"
+        data-fullname="<?php echo $row['fullname']; ?>"
+        data-toggle="modal" 
+        data-target="#editDriverModal"><i class="fas fa-edit"></i>
+        Edit
+    </button>
+</td>
+                            </tr>
+                        <?php } ?>
+                        </tbody>
+                        </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Driver Modal -->
+<div class="modal fade" id="editDriverModal" tabindex="-1" aria-labelledby="editDriverModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editHeadModalLabel">Edit Driver's Information</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="editHeadForm" method="POST" action="update_vehicle.php">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="edit_driver_id">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name: </label>
+                        <input type="text" class="form-control" name="fullname" id="edit_driver_fullname">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-outline-primary"><i class="fas fa-save"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--Add Driver Modal-->
+<div class="modal fade" id="addDriverModal" tabindex="-1" aria-labelledby="addDriverModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="headModalLabel">Driver Registration</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="addHeadForm" method="POST" action="add_driver.php">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name:</label>
+                        <input type="text" class="form-control" name="fullname" style="text-transform: uppercase;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-outline-success"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
         <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
         <script src="scripts.js"></script>
@@ -954,6 +1067,18 @@ if (isset($_SESSION['message'])) {
 
             // Show the edit modal
             $("#editHeadModal").modal("show");
+        });
+
+        $(".edit-driver-btn").click(function () {
+            var id = $(this).data("id");
+            var fullname = $(this).data("fullname");
+
+            // Populate the form fields
+            $("#edit_driver_id").val(id);
+            $("#edit_driver_fullname").val(fullname);
+
+            // Show the edit modal
+            $("#editDriverModal").modal("show");
         });
     });
 </script>

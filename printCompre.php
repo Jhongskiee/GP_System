@@ -33,7 +33,7 @@ while ($row = $result->fetch_assoc()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Print MROT</title>
+    <title>Print Comprehensive - All Vehicle</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; }
         .header { text-align: center; margin-bottom: 20px; }
@@ -61,7 +61,8 @@ while ($row = $result->fetch_assoc()) {
     margin: 0 auto;
 }
 
-        .abovetable { font-size: 14px; display: flex; justify-content: space-between; margin-bottom: 0; }
+        .abovetable { font-size: 14px; display: flex; justify-content: space-between; margin-bottom: 10px; border: 1px solid #000; padding-left: 5px; padding-right: 5px;}
+        .abovetable p{margin:0; padding:0; font-weight: bold;}
         .table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px; }
         .table, .table th, .table td { border: 1px solid black; }
         .table th, .table td { padding: 8px; text-align: center; }
@@ -95,59 +96,30 @@ $firstPage = true; // Add this before the outer loop
             <h2>Republic of the Philippines</h2>
             <h3>Province of Davao del Norte</h3>
             <h3>City of Panabo</h3>
-            <h4><strong>GENERAL SERVICES OFFICE</strong></h4>
-            <h2>MONTHLY REPORT OF OFFICIAL TRAVELS</h2>
-            <p>(to be accomplished for each motor vehicle)</p>
+            <h3>-o0o-</h3>
+            <h4><strong>GSO / MOTOR POOL SECTION</strong></h4>
+            <h2>COMPREHENSIVE LIGHT/HEAVY VEHICLE HISTORY AND COST ANALYSIS</h2>
         </div>
     </div>
-    <hr>
 </div>
-
-
-            <div class="abovetable">
-                <div>
-                    <p>Plate No.: <span><?= htmlspecialchars($records[0]['equipplate']); ?></span></p>
-                    <p>Vehicle Type: <span><?= htmlspecialchars($records[0]['equiptype']); ?></span></p>
+                <p style="font-size: 14px; margin-bottom: 0;">FOR THE MONTH OF: <span><strong><?= $monthYear ?></strong></span></p>
+                <div class="abovetable">
+                    <p>Unit Make: <span><?= htmlspecialchars($records[0]['equiptype']); ?></span></p>
+                    <p>Unit Plate: <span><?= htmlspecialchars($records[0]['equipplate']); ?></span></p>
+                    <p>Driver / Operator: <span><?= htmlspecialchars($driver); ?></span></p>
+                    <p>Salary Rate: <span><strong><?= $monthYear ?></strong></span></p>
                 </div>
-                <div>
-                    <p>Report Month: <span><strong><?= $monthYear ?></strong></span></p>
-                    <p>Name of Driver: <span><?= htmlspecialchars($driver); ?></span></p>
-                </div>        
-            </div>
 
             <?php
             // Initialize totals
             $totalBeginning = $totalEnding = $totalDistance = $totalHours = $totalFuel = 0;
             ?>
-            
-                
-            <p style="margin-top: 0; font-size: 14px;">Normal Travel (km/liter): 
-                <strong><?= ($totalFuel > 0) ? round($totalDistance / $totalFuel, 2) : '0' ?></strong>
-            </p>
+
             <?php if ($category === 'odometer') : ?>
             
                 <?php
-                    $prevEnding = null; // Store previous row's ending value 
-                ?>
-                
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th rowspan="2">Date</th>
-                        <th colspan="2">Odometer Reading</th>
-                        <th rowspan="2">Distance (km)</th>
-                        <th rowspan="2">Fuel (L)</th>
-                        <th rowspan="2">Designated Area</th>
-                        <th rowspan="2">Nature of Work</th>
-                    </tr>
-                    <tr>
-                        <th>Beginning</th>
-                        <th>Ending</th>
-                    </tr>    
-                </thead>
-                
-                <?php
-                
+                    $prevEnding = null; // Store previous row's ending value
+
                     foreach ($records as $index => $row) :
                         $beginning = isset($row['odoMeasure']) && is_numeric($row['odoMeasure']) ? (float)$row['odoMeasure'] : 0;
                         $distance = isset($row['distance']) && is_numeric($row['distance']) ? (float)$row['distance'] : 0.0;
@@ -185,15 +157,93 @@ $firstPage = true; // Add this before the outer loop
                         $totalDistance += $distance;
                         $totalFuel += $fuel;
                     ?>    
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th rowspan="3">Date</th>
+                        <th rowspan="3">Nature of Work</th>
+                        <th rowspan="3">Location</th>
+                        <th rowspan="3">Distance Travel</th>
+                        <th rowspan="1" colspan="2">Fuel</th>
+                        <th rowspan="1" colspan="14">Lubricants</th>
+                        <th rowspan="2" colspan="2">Coolant</th>
+                        <th rowspan="2" colspan="2">ADBLUE</th>
+                        <th rowspan="1" colspan="3">Spare Parts</th>
+                        <th rowspan="1" colspan="2">Equip. Time</th>
+                        <th rowspan="3">Wages</th>
+                        <th rowspan="3">ODOMETER</th>
+                    </tr>
+                    <tr>
+                        <th rowspan="1" colspan="2">Diesel</th>
+                        <th rowspan="1" colspan="2">Engine Oil</th>
+                        <th rowspan="1" colspan="2">Trans. Oil</th>
+                        <th rowspan="1" colspan="2">Gear Oil</th>
+                        <th rowspan="1" colspan="2">Hyd. Oil</th>
+                        <th rowspan="1" colspan="2">Brake Fluid</th>
+                        <th rowspan="1" colspan="2">ATF</th>
+                        <th rowspan="1" colspan="2">Grease</th>
+                        <th rowspan="2">Qty.</th>
+                        <th rowspan="2">Description</th>
+                        <th rowspan="2">Cost</th>
+                        <th rowspan="2">UT</th>
+                        <th rowspan="2">AT</th>
+                    </tr>
+                    <tr>
+                        <th>Ltrs.</th>
+                        <th>Cost</th>
+                        <th>Ltrs.</th>
+                        <th>Cost</th>
+                        <th>Ltrs.</th>
+                        <th>Cost</th>
+                        <th>Ltrs.</th>
+                        <th>Cost</th>
+                        <th>Ltrs.</th>
+                        <th>Cost</th>
+                        <th>Ltrs.</th>
+                        <th>Cost</th>
+                        <th>Ltrs.</th>
+                        <th>Cost</th>
+                        <th>Kgs.</th>
+                        <th>Cost</th>
+                        <th>Ltrs.</th>
+                        <th>Cost</th>
+                        <th>Ltrs.</th>
+                        <th>Cost</th>
+                    </tr>        
+                </thead>
                 <tbody>
                         <tr>
-                            <td><?= date("F d", strtotime($row['equipdate'])) ?></td>
-                            <td><?= $beginning ? htmlspecialchars($beginning) : '' ?></td>
-                            <td><?= $ending ? htmlspecialchars($ending) : '' ?></td>
+                            <td><?= date("d", strtotime($row['equipdate'])) ?></td>
+                            <td><?= htmlspecialchars($row['equipnature']) ?></td>
+                            <td><?= htmlspecialchars($row['equiparea']) ?></td>
                             <td><?= $distance ? htmlspecialchars($distance) : '' ?></td>
                             <td><?= $fuel ? htmlspecialchars($fuel) : '' ?></td>
-                            <td><?= htmlspecialchars($row['equiparea']) ?></td>
-                            <td><?= htmlspecialchars($row['equipnature']) ?></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -206,6 +256,30 @@ $firstPage = true; // Add this before the outer loop
                         <td><strong><?= $totalFuel ?></strong></td>
                         <td></td>
                         <td></td>
+                        <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                     </tr>
                 </tfoot>
             </table>
